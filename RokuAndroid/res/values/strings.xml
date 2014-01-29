@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">RokuAndroid</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_remote">RemoteActivity</string>
+    <string name="left">left</string>
+    <string name="right">right</string>
+    <string name="title_activity_roku_device_chooser">RokuDeviceChooserActivity</string>
+    <string name="title_activity_roku_app_chooser">RokuAppChooserActivity</string>
+    <string name="title_activity_roku_remote_control">RokuRemoteControlActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="no_devices">No devices</string>
+    <string name="device_name_and_model">%1$s %2$s</string>
+    <string name="use">Use</string>
+    <string name="info">Info</string>
+    <string name="finding_devices">Finding devices...</string>
+    <string name="finding_apps">Finding apps...</string>
+    <string name="could_not_find_any_devices">Could not find any devices</string>
+    <string name="could_not_find_any_apps">Could not find any apps</string>
+    <string name="title_activity_roku_voice">RokuVoiceActivity</string>
+
+</resources>
