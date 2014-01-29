@@ -3,14 +3,17 @@ package com.jeffpalm.roku.android.app;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android.imagedownloader.ImageDownloader;
 import com.jeffpalm.roku.android.Command;
 import com.jeffpalm.roku.android.RokUtil;
 import com.jeffpalm.roku.android.RokuAppInfo;
@@ -22,6 +25,10 @@ public class RokuRemoteControlActivity extends Activity {
   private final AtomicBoolean startedApp = new AtomicBoolean(false);
   private RokuDeviceState deviceState;
   private RokuAppInfo appInfo;
+  private final ImageDownloader imageDownloader = new ImageDownloader();
+  {
+    imageDownloader.setMode(ImageDownloader.Mode.CORRECT);
+  }
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -39,7 +46,7 @@ public class RokuRemoteControlActivity extends Activity {
       ImageView imageView = (ImageView) findViewById(R.id.app_image);
       TextView textTitle = (TextView) findViewById(R.id.text_app_title);
       TextView textSubtitle = (TextView) findViewById(R.id.text_app_sub_title);
-      RokUtil.setImageView(deviceState, appInfo, imageView);
+      imageDownloader.download(RokUtil.getImagePath(deviceState, appInfo), imageView);
       textTitle.setText(appInfo.getName());
       textSubtitle.setText(String.valueOf(appInfo.getVersion()));
     }
@@ -102,19 +109,21 @@ public class RokuRemoteControlActivity extends Activity {
     ((Button) findViewById(R.id.button_show_keyboard))
         .setOnClickListener(new View.OnClickListener() {
           @Override public void onClick(View v) {
-            //TODOshowKeyboard();
+            showKeyboard();
           }
         });
-
 
     startedApp.set(false);
   }
 
+  private void showKeyboard() {
+    InputMethodManager inputMgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+    inputMgr.toggleSoftInput(0, 0);
+  }
+
   @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
-    if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 1) {
-      char unicodeChar = (char) event.getUnicodeChar();
-      RokUtil.pressKey(deviceState, unicodeChar);
-    }
+    char unicodeChar = (char) event.getUnicodeChar();
+    RokUtil.pressKey(deviceState, unicodeChar);
     return super.onKeyDown(keyCode, event);
   }
 

@@ -15,6 +15,7 @@
         android:choiceMode="singleChoice"
         tools:listitem="@android:layout/simple_list_item_single_choice" />
 
+    
     <LinearLayout
         style="@android:style/ButtonBar"
         android:layout_below="@+id/list"
@@ -24,12 +25,22 @@
         android:orientation="horizontal" >
 
         <Button
+            android:id="@+id/button_remote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center"
+            android:minWidth="100dp"
+            android:text="Remote" />
+        
+         <Button
             android:id="@+id/button_speak"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal|center"
             android:minWidth="100dp"
             android:text="Speak" />
+        
+        
     </LinearLayout>
 
 </LinearLayout>

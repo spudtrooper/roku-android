@@ -22,6 +22,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.imagedownloader.ImageDownloader;
 import com.jeffpalm.roku.android.InputStreamAsyncTask;
 import com.jeffpalm.roku.android.ReadsFromInputStream;
 import com.jeffpalm.roku.android.RokUtil;
@@ -45,22 +46,28 @@ public class RokuAppChooserActivity extends ListActivity {
   private RokuDeviceState deviceState;
 
   public class RokuAppInfoAdapter extends ArrayAdapter<RokuAppInfo> {
+    private final ImageDownloader imageDownloader = new ImageDownloader();
+    {
+      imageDownloader.setMode(ImageDownloader.Mode.CORRECT);
+    }
+
     public RokuAppInfoAdapter(Context context, ArrayList<RokuAppInfo> appInfos) {
       super(context, R.layout.roku_app_linear_layout, appInfos);
     }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {
-      RokuAppInfo appInfo = getItem(position);
+      final RokuAppInfo appInfo = getItem(position);
       if (convertView == null) {
         convertView = LayoutInflater.from(getContext()).inflate(R.layout.roku_app_linear_layout,
             null);
       }
       TextView textName = (TextView) convertView.findViewById(R.id.text_name);
       TextView textDescription = (TextView) convertView.findViewById(R.id.text_description);
-      ImageView imageDevice = (ImageView) convertView.findViewById(R.id.image_app);
+      final ImageView imageDevice = (ImageView) convertView.findViewById(R.id.image_app);
       textName.setText(appInfo.getName());
       textDescription.setText(appInfo.getVersion());
-      //RokUtil.setImageView(deviceState, appInfo, imageDevice);
+      imageDownloader.download(RokUtil.getImagePath(deviceState, appInfo), imageDevice);
+
       return convertView;
     }
   }
@@ -81,10 +88,14 @@ public class RokuAppChooserActivity extends ListActivity {
     ListView list = (ListView) findViewById(android.R.id.list);
     list.setClickable(true);
 
-    Button speakButton = (Button) findViewById(R.id.button_speak);
-    speakButton.setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View arg0) {
+    ((Button) findViewById(R.id.button_speak)).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
         speak();
+      }
+    });
+    ((Button) findViewById(R.id.button_remote)).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        showRemote();
       }
     });
 
@@ -102,7 +113,7 @@ public class RokuAppChooserActivity extends ListActivity {
           dialog.show();
         }
 
-        @Override protected void onPostExecute(Option<List<RokuAppInfo>, Exception> result) {
+        @Override protected void onPostExecute(final Option<List<RokuAppInfo>, Exception> result) {
           if (dialog.isShowing()) {
             dialog.dismiss();
           }
@@ -118,6 +129,12 @@ public class RokuAppChooserActivity extends ListActivity {
         }
       }.execute(url);
     }
+  }
+
+  private void showRemote() {
+    Intent intent = new Intent(this, RokuRemoteControlActivity.class);
+    intent.putExtra(Roku.DEVICE_STATE, deviceState);
+    startActivity(intent);
   }
 
   @Override protected void onListItemClick(ListView l, View v, int position, long id) {

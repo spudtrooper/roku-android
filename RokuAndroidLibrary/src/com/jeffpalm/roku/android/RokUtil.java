@@ -2,7 +2,6 @@ package com.jeffpalm.roku.android;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -18,10 +17,7 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 
-import com.jeffpalm.util.android.DownloadImageTask;
-
 import android.util.Log;
-import android.widget.ImageView;
 
 public class RokUtil {
 
@@ -72,11 +68,9 @@ public class RokUtil {
   public static void handle(String tag, Throwable e, String msg) {
     Log.e(tag, msg + ":" + e.getMessage());
   }
-
-  public static void setImageView(RokuDeviceState deviceState, RokuAppInfo appInfo,
-      ImageView imageView) {
-    String imagePath = new RokuPaths(deviceState.getHost()).getAppIconURL(appInfo);
-    DownloadImageTask.setImageURL(imageView, imagePath);
+  
+  public static String getImagePath(RokuDeviceState deviceState, RokuAppInfo appInfo) {
+    return new RokuPaths(deviceState.getHost()).getAppIconURL(appInfo);
   }
 
   public static void executeSimpleCommand(RokuDeviceState deviceState, String command) {
