@@ -44,6 +44,7 @@ public class RokuAppChooserActivity extends ListActivity {
   private static final int REQUEST_CODE = 1234;
   private RokuAppInfoAdapter listAdapter;
   private RokuDeviceState deviceState;
+  private SpeechLauncher speechLauncher = new SpeechLauncher();
 
   public class RokuAppInfoAdapter extends ArrayAdapter<RokuAppInfo> {
     private final ImageDownloader imageDownloader = new ImageDownloader();
@@ -99,36 +100,38 @@ public class RokuAppChooserActivity extends ListActivity {
       }
     });
 
-    if (deviceState.getAppInfos().isEmpty()) {
-      RokuPaths paths = new RokuPaths(deviceState.getHost());
-      String url = paths.getAppInfoPath();
-      final ProgressDialog dialog = new ProgressDialog(this);
-      new InputStreamAsyncTask<List<RokuAppInfo>>(new ReadsFromInputStream<List<RokuAppInfo>>() {
-        @Override public List<RokuAppInfo> fromInputStream(InputStream in) throws Exception {
-          return RokuAppInfo.fromInputStream(in);
-        }
-      }) {
-        @Override protected void onPreExecute() {
-          dialog.setMessage(getResources().getText(R.string.finding_apps));
-          dialog.show();
-        }
-
-        @Override protected void onPostExecute(final Option<List<RokuAppInfo>, Exception> result) {
-          if (dialog.isShowing()) {
-            dialog.dismiss();
-          }
-          if (result.isSuccess()) {
-            Log.d(TAG, String.format("Have %d apps", result.getSuccess().size()));
-            // TODO: Take these from the device state, not a separate adapter
-            deviceState.addAllAppInfos(result.getSuccess());
-            listAdapter.addAll(result.getSuccess());
-          } else {
-            Toast.makeText(getApplicationContext(),
-                getResources().getText(R.string.could_not_find_any_apps), Toast.LENGTH_LONG).show();
-          }
-        }
-      }.execute(url);
+    if (!deviceState.getAppInfos().isEmpty()) {
+      listAdapter.addAll(deviceState.getAppInfos());
+      return;
     }
+    RokuPaths paths = new RokuPaths(deviceState.getHost());
+    String url = paths.getAppInfoPath();
+    final ProgressDialog dialog = new ProgressDialog(this);
+    new InputStreamAsyncTask<List<RokuAppInfo>>(new ReadsFromInputStream<List<RokuAppInfo>>() {
+      @Override public List<RokuAppInfo> fromInputStream(InputStream in) throws Exception {
+        return RokuAppInfo.fromInputStream(in);
+      }
+    }) {
+      @Override protected void onPreExecute() {
+        dialog.setMessage(getResources().getText(R.string.finding_apps));
+        dialog.show();
+      }
+
+      @Override protected void onPostExecute(final Option<List<RokuAppInfo>, Exception> result) {
+        if (dialog.isShowing()) {
+          dialog.dismiss();
+        }
+        if (result.isSuccess()) {
+          Log.d(TAG, String.format("Have %d apps", result.getSuccess().size()));
+          // TODO: Take these from the device state, not a separate adapter
+          deviceState.addAllAppInfos(result.getSuccess());
+          listAdapter.addAll(result.getSuccess());
+        } else {
+          Toast.makeText(getApplicationContext(),
+              getResources().getText(R.string.could_not_find_any_apps), Toast.LENGTH_LONG).show();
+        }
+      }
+    }.execute(url);
   }
 
   private void showRemote() {
@@ -176,15 +179,6 @@ public class RokuAppChooserActivity extends ListActivity {
   }
 
   private void launchApp(ArrayList<String> matches) {
-    outer: for (RokuAppInfo appInfo : deviceState.getAppInfos()) {
-      for (String match : matches) {
-        for (String part : match.split(" ")) {
-          if (appInfo.getName().contains(part) || part.contains(appInfo.getName())) {
-            launchApp(appInfo);
-            break outer;
-          }
-        }
-      }
-    }
+    speechLauncher.actOn(matches, this, deviceState);
   }
 }

@@ -1,10 +1,14 @@
 package com.jeffpalm.roku.android.app;
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -15,16 +19,23 @@ import android.widget.TextView;
 
 import com.example.android.imagedownloader.ImageDownloader;
 import com.jeffpalm.roku.android.Command;
+import com.jeffpalm.roku.android.CommandQueue;
 import com.jeffpalm.roku.android.RokUtil;
 import com.jeffpalm.roku.android.RokuAppInfo;
 import com.jeffpalm.roku.android.RokuDeviceState;
+import com.jeffpalm.util.Callback;
 
 public class RokuRemoteControlActivity extends Activity {
 
   private final static String TAG = "RokuDeviceChooserActivity";
+  private static final int REQUEST_CODE = 1234;
   private final AtomicBoolean startedApp = new AtomicBoolean(false);
+  private final CommandQueue commandQueue = new CommandQueue();
+  private SpeechLauncher speechLauncher = new SpeechLauncher();
+
   private RokuDeviceState deviceState;
   private RokuAppInfo appInfo;
+
   private final ImageDownloader imageDownloader = new ImageDownloader();
   {
     imageDownloader.setMode(ImageDownloader.Mode.CORRECT);
@@ -69,11 +80,6 @@ public class RokuRemoteControlActivity extends Activity {
         RokUtil.executeSimpleCommand(deviceState, Command.SimpleCommands.FORWARD);
       }
     });
-    ((Button) findViewById(R.id.button_home)).setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        RokUtil.executeSimpleCommand(deviceState, Command.SimpleCommands.HOME);
-      }
-    });
     ((Button) findViewById(R.id.button_replay)).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         RokUtil.executeSimpleCommand(deviceState, Command.SimpleCommands.REPLAY);
@@ -106,14 +112,34 @@ public class RokuRemoteControlActivity extends Activity {
       }
     });
 
+    ((Button) findViewById(R.id.button_home)).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        home();
+      }
+    });
     ((Button) findViewById(R.id.button_show_keyboard))
         .setOnClickListener(new View.OnClickListener() {
           @Override public void onClick(View v) {
             showKeyboard();
           }
         });
+    ((Button) findViewById(R.id.button_speak)).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        speak();
+      }
+    });
 
     startedApp.set(false);
+  }
+
+  private void home() {
+    RokUtil.executeSimpleCommand(deviceState, Command.SimpleCommands.HOME, new Callback<String>() {
+      @Override public void callback(String value) {
+        Intent intent = new Intent(RokuRemoteControlActivity.this, RokuAppChooserActivity.class);
+        intent.putExtra(Roku.DEVICE_STATE, deviceState);
+        startActivity(intent);
+      }
+    });
   }
 
   private void showKeyboard() {
@@ -123,7 +149,7 @@ public class RokuRemoteControlActivity extends Activity {
 
   @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
     char unicodeChar = (char) event.getUnicodeChar();
-    RokUtil.pressKey(deviceState, unicodeChar);
+    commandQueue.execute(RokUtil.getPressKeyCommands(deviceState, unicodeChar));
     return super.onKeyDown(keyCode, event);
   }
 
@@ -136,6 +162,36 @@ public class RokuRemoteControlActivity extends Activity {
         RokUtil.handle(TAG, e, "Launching " + appInfo);
       }
     }
+  }
+
+  /**
+   * Fire an intent to start the voice recognition activity.
+   */
+  private void speak() {
+    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+    intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Voice recognition Demo...");
+    startActivityForResult(intent, REQUEST_CODE);
+  }
+
+  /**
+   * Handle the results from the voice recognition activity.
+   */
+  @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+      // Populate the wordsList with the String values the recognition engine
+      // thought it heard
+      ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+      Log.d("Words", matches.toString());
+
+      launchApp(matches);
+    }
+    super.onActivityResult(requestCode, resultCode, data);
+  }
+
+  private void launchApp(ArrayList<String> matches) {
+    speechLauncher.actOn(matches, this, deviceState);
   }
 
 }

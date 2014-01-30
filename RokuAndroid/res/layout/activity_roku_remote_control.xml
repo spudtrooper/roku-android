@@ -114,15 +114,6 @@
             android:layout_below="@+id/down_layout"
             android:gravity="center_horizontal|top"
             android:orientation="horizontal" >
-
-            <Button
-                android:id="@+id/button_home"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal|center"
-                android:minWidth="60dp"
-                android:text="Home" />
-
             <Button
                 android:id="@+id/button_replay"
                 android:layout_width="wrap_content"
@@ -175,13 +166,31 @@
         android:layout_below="@+id/list"
         android:orientation="horizontal" >
 
-        <Button
+    
+         <Button
+            android:id="@+id/button_home"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center"
+            android:minWidth="100dp"
+            android:text="Home" />
+         
+         <Button
+            android:id="@+id/button_speak"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center"
+            android:minWidth="100dp"
+            android:text="Speak" />
+         
+          <Button
             android:id="@+id/button_show_keyboard"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal|center"
             android:minWidth="100dp"
             android:text="Keyboard" />
+        
     </LinearLayout>
 
 </RelativeLayout>

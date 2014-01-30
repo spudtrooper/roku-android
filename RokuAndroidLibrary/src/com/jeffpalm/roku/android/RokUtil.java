@@ -19,6 +19,8 @@ import org.apache.http.protocol.BasicHttpContext;
 
 import android.util.Log;
 
+import com.jeffpalm.util.Callback;
+
 public class RokUtil {
 
   private final static String TAG = "RokUtil";
@@ -68,19 +70,29 @@ public class RokUtil {
   public static void handle(String tag, Throwable e, String msg) {
     Log.e(tag, msg + ":" + e.getMessage());
   }
-  
+
   public static String getImagePath(RokuDeviceState deviceState, RokuAppInfo appInfo) {
     return new RokuPaths(deviceState.getHost()).getAppIconURL(appInfo);
   }
 
   public static void executeSimpleCommand(RokuDeviceState deviceState, String command) {
-    RokuPaths paths = new RokuPaths(deviceState);
-    new CommandTask().execute(paths.getSimpleCommandPath(command));
+    executeSimpleCommand(deviceState, command, null /* callback */);
   }
 
-  public static void pressKey(RokuDeviceState deviceState, char unicodeChar) {
+  public static void executeSimpleCommand(RokuDeviceState deviceState, String command,
+      final Callback<String> callback) {
     RokuPaths paths = new RokuPaths(deviceState);
-    final List<Command> cmds = paths.getCharPathList(unicodeChar);
-    new CommandsTask(cmds).execute();
+    new CommandTask() {
+      protected void onPostExecute(String result) {
+        if (callback != null) {
+          callback.callback(result);
+        }
+      };
+    }.execute(paths.getSimpleCommandPath(command));
+  }
+
+  public static List<Command> getPressKeyCommands(RokuDeviceState deviceState, char c) {
+    RokuPaths paths = new RokuPaths(deviceState);
+    return paths.getCharPathList(c);
   }
 }
