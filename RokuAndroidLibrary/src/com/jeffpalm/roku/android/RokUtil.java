@@ -95,4 +95,26 @@ public class RokUtil {
     RokuPaths paths = new RokuPaths(deviceState);
     return paths.getCharPathList(c);
   }
+
+  public static void pressKey(RokuDeviceState deviceState, char c) {
+    final List<Command> commands = getPressKeyCommands(deviceState, c);
+    new Thread(new Runnable() {
+      public void run() {
+        for (Command command : commands) {
+          try {
+            postCommand(command);
+          } catch (Exception e) {
+            handle(TAG, e, "pressKey " + command.getPath());
+          }
+        }
+      }
+    }).start();
+  }
+
+  public static String postCommand(Command command) throws ClientProtocolException, IOException {
+    String path = command.getPath();
+    Log.d(TAG, "Sending task " + path);
+    return RokUtil.post(path);
+
+  }
 }

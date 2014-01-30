@@ -149,7 +149,7 @@ public class RokuRemoteControlActivity extends Activity {
 
   @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
     char unicodeChar = (char) event.getUnicodeChar();
-    commandQueue.execute(RokUtil.getPressKeyCommands(deviceState, unicodeChar));
+    RokUtil.pressKey(deviceState, unicodeChar);
     return super.onKeyDown(keyCode, event);
   }
 

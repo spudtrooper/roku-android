@@ -10,9 +10,7 @@ public class CommandTask extends AsyncTask<Command, Integer, String> {
   @Override protected String doInBackground(Command... params) {
     Command command = params[0];
     try {
-      String path = command.getPath();
-      Log.d(TAG, "Sending task " + path);
-      return RokUtil.post(path);
+      return RokUtil.postCommand(command);
     } catch (Exception e) {
     }
     return null;
